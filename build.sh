@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=16.0.6.655
+VERSION=16.0.7.1078
 USER=farfui
 
 docker rmi ${USER}/3cx:${VERSION}
