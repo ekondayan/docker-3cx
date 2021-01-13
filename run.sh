@@ -6,7 +6,7 @@ USER=farfui
 docker run \
         -d \
         --name 3cx \
-        --hostname pbx.ekon.bg \
+        --hostname pbx.yourdomain.com \
         --memory 2g \
         --memory-swap 2g \
         --network host \
