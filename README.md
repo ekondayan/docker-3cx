@@ -30,7 +30,7 @@ docker run \
     --cap-add SYS_ADMIN \
     --cap-add NET_ADMIN \
     --name 3cx \
-    farfui/3cx:16.0.6.655
+    farfui/3cx:16.0.7.1078
 
 3. Setup the timezone. You can find the full listing under "/usr/share/zoneinfo/".
 
