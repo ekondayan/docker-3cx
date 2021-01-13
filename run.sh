@@ -2,11 +2,12 @@
 
 VERSION=16.0.7.1078
 USER=farfui
+HOSTNAME=pbx.yourdomain.com
 
 docker run \
         -d \
         --name 3cx \
-        --hostname pbx.yourdomain.com \
+        --hostname ${HOSTNAME} \
         --memory 2g \
         --memory-swap 2g \
         --network host \
