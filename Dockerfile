@@ -1,5 +1,5 @@
-FROM debian:stretch
-
+FROM debian:buster
+  
 ARG BUILD_STRING
 ARG BUILD_DATE
 ARG BUILD_TIME
@@ -23,11 +23,12 @@ RUN    apt-get update -y \
          locales \
     && sed -i 's/\# \(en_US.UTF-8\)/\1/' /etc/locale.gen \
     && locale-gen \
-    && wget -O- http://downloads.3cx.com/downloads/3cxpbx/public.key | apt-key add - \   
-    && echo "deb http://downloads.3cx.com/downloads/debian stretch main" | tee /etc/apt/sources.list.d/3cxpbx.list \
+    && wget -O- http://downloads-global.3cx.com/downloads/3cxpbx/public.key | apt-key add - \
+    && echo "deb http://downloads-global.3cx.com/downloads/debian buster main" | tee /etc/apt/sources.list.d/3cxpbx.list \
     && apt-get update -y \
     && apt-get install -y --allow-unauthenticated \
        net-tools \
+       dphys-swapfile \
        $(apt-cache depends 3cxpbx | grep Depends | sed "s/.*ends:\ //" | tr '\n' ' ') \
     && rm -f /lib/systemd/system/multi-user.target.wants/* \
     && rm -f /etc/systemd/system/*.wants/* \
