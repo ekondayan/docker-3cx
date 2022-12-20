@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=16.0.7.1078
+VERSION=18.0.3.450
 USER=farfui
 HOSTNAME=pbx.yourdomain.com
 
