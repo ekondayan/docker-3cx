@@ -1,6 +1,6 @@
 #!/bin/bash
   
-VERSION=18.0.3.450
+VERSION=18.0.8.935
 USER=farfui
 
 docker rmi ${USER}/3cx:${VERSION}
@@ -21,7 +21,10 @@ docker run \
 docker exec 3cx_stage1_c bash -c \
         "   systemctl mask systemd-logind console-getty.service container-getty@.service getty-static.service getty@.service serial-getty@.service getty.target \
          && systemctl enable nginx exim4 postgresql \
-         && echo 1 | apt-get -y install 3cxpbx"
+         && apt-get update \
+         && echo 1 | apt-get -y install 3cxpbx \
+         && apt update \
+         && apt upgrade -y"
 
 docker stop 3cx_stage1_c
 

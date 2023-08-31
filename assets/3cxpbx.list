@@ -1,0 +1,3 @@
+#deb http://downloads-global.3cx.com/downloads/debian buster main
+#deb http://repo.3cx.com/3cx buster main
+#deb http://repo.3cx.com/3cx buster-testing main
