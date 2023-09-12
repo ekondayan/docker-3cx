@@ -16,21 +16,20 @@ docker network create \
 2. Run the container
 
 docker run \
-    -d \
-    --hostname {YOUR HOSTNAME} \
-    --memory {MEMORY} \
-    --memory-swap {SWAP MEMORY} \
-    --ip {IP ADDRESS} \
-    --network mv_eth0 \
-    --restart unless-stopped \
-    -v 3cx_backup:/mnt/backup \
-    -v 3cx_recordings:/mnt/recordings \
-    -v 3cx_log:/var/log \
-    -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
-    --cap-add SYS_ADMIN \
-    --cap-add NET_ADMIN \
-    --name 3cx \
-    farfui/3cx:18.0.3.450
+        -d \
+        --name 3cx \
+        --hostname ${HOSTNAME} \
+        --memory 2g \
+        --memory-swap 2g \
+        --network host \
+        --restart unless-stopped \
+        -v /sys/fs/cgroup:/sys/fs/cgroup:ro \
+        -v 3cx_backup:/srv/backup \
+        -v 3cx_recordings:/srv/recordings \
+        -v 3cx_log:/var/log \
+        --cap-add SYS_ADMIN \
+        --cap-add NET_ADMIN \
+        farfui/3cx:18.0.8.935
 
 3. Setup the timezone. You can find the full listing under "/usr/share/zoneinfo/".
 
@@ -45,29 +44,32 @@ build.sh - How this container was build
 
 ```bash
 #!/bin/bash
-
-VERSION=18.0.3.450
+  
+VERSION=18.0.8.935
 USER=farfui
 
 docker rmi ${USER}/3cx:${VERSION}
 
 docker build \
- --force-rm \
- --no-cache \
- --build-arg BUILD_STRING="$(date -u)" \
- --build-arg BUILD_DATE="$(date +%d-%m-%Y)" \
- --build-arg BUILD_TIME="$(date +%H:%M:%S)" \
- -t 3cx_stage1 .
+        --force-rm \
+        --no-cache \
+        --build-arg BUILD_STRING="$(date -u)" \
+        --build-arg BUILD_DATE="$(date +%d-%m-%Y)" \
+        --build-arg BUILD_TIME="$(date +%H:%M:%S)" \
+        -t 3cx_stage1 .
 
 docker run \
- -d \
- --privileged \
- --name 3cx_stage1_c 3cx_stage1
+        -d \
+        --privileged \
+        --name 3cx_stage1_c 3cx_stage1
 
 docker exec 3cx_stage1_c bash -c \
- " systemctl mask systemd-logind console-getty.service container-getty@.service getty-static.service getty@.service serial-getty@.service getty.target \
- && systemctl enable nginx exim4 postgresql \
- && echo 1 | apt-get -y install 3cxpbx"
+        "   systemctl mask systemd-logind console-getty.service container-getty@.service getty-static.service getty@.service serial-getty@.service getty.target \
+         && systemctl enable nginx exim4 postgresql \
+         && apt-get update \
+         && echo 1 | apt-get -y install 3cxpbx \
+         && apt update \
+         && apt upgrade -y"
 
 docker stop 3cx_stage1_c
 
@@ -84,46 +86,60 @@ Dockerfile
 ========
 
 ```dockerfile
-FROM debian:stretch
-
+FROM debian:buster
+  
 ARG BUILD_STRING
 ARG BUILD_DATE
 ARG BUILD_TIME
 
 LABEL build.string $BUILD_STRING
-LABEL build.date $BUILD_DATE
-LABEL build.time $BUILD_TIME
+LABEL build.date   $BUILD_DATE
+LABEL build.time   $BUILD_TIME
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en
 ENV container docker
 
-RUN apt-get update -y \
- && apt-get upgrade -y \
- && apt-get install -y --allow-unauthenticated \
- apt-utils \
- wget \
- gnupg2 \
- systemd \
- locales \
- && sed -i 's/\# \(en_US.UTF-8\)/\1/' /etc/locale.gen \
- && locale-gen \
- && wget -O- http://downloads.3cx.com/downloads/3cxpbx/public.key | apt-key add - \  
- && echo "deb http://downloads.3cx.com/downloads/debian stretch main" | tee /etc/apt/sources.list.d/3cxpbx.list \
- && apt-get update -y \
- && apt-get install -y --allow-unauthenticated \
- net-tools \
- $(apt-cache depends 3cxpbx | grep Depends | sed "s/.*ends:\ //" | tr '\n' ' ') \
- && rm -f /lib/systemd/system/multi-user.target.wants/* \
- && rm -f /etc/systemd/system/*.wants/* \
- && rm -f /lib/systemd/system/local-fs.target.wants/* \
- && rm -f /lib/systemd/system/sockets.target.wants/*udev* \
- && rm -f /lib/systemd/system/sockets.target.wants/*initctl* \
- && rm -f /lib/systemd/system/basic.target.wants/* \
- && rm -f /lib/systemd/system/anaconda.target.wants/*
+#COPY assets/3cx-archive-keyring.gpg /usr/share/keyrings/
+COPY assets/3cx_fix_perms.service /lib/systemd/system/
+COPY assets/3cx_fix_perms.sh /
+COPY assets/3cxpbx.list /etc/apt/sources.list.d/
 
-EXPOSE 5015/tcp 5001/tcp 5060/tcp 5060/udp 5061/tcp 5090/tcp 5090/udp 9000-9500/udp
+RUN apt-get update -y \
+    &&  apt-get upgrade -y \
+    && apt-get install -y --allow-unauthenticated\
+         apt-utils \
+         wget \
+         gnupg2 \
+         systemd \
+         locales \
+    && sed -i 's/\# \(en_US.UTF-8\)/\1/' /etc/locale.gen \
+    && locale-gen \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys D34B9BFD90503A6B \
+    && sed -i '/^#/ s/^#//' /etc/apt/sources.list.d/3cxpbx.list \
+    && apt-get update -y  \
+    && apt-get install -y --allow-unauthenticated \
+       net-tools \
+       dphys-swapfile \
+       libcurl3-gnutls \
+       libmediainfo0v5 \
+       libmms0 \
+       libnghttp2-14 \
+       librtmp1 \
+       libssh2-1 \
+       libtinyxml2-6a \
+       libzen0v5 \
+       $(apt-cache depends 3cxpbx | grep Depends | sed "s/.*ends:\ //" | tr '\n' ' ') \
+    && rm -f /lib/systemd/system/multi-user.target.wants/* \
+    && rm -f /etc/systemd/system/*.wants/* \
+    && rm -f /lib/systemd/system/local-fs.target.wants/* \
+    && rm -f /lib/systemd/system/sockets.target.wants/*udev* \
+    && rm -f /lib/systemd/system/sockets.target.wants/*initctl* \
+    && rm -f /lib/systemd/system/basic.target.wants/* \
+    && rm -f /lib/systemd/system/anaconda.target.wants/*
+
+EXPOSE 5015/tcp 5001/tcp 5060/tcp 5060/udp 5061/tcp 5090/tcp 5090/udp 9000-9500/udp 10600-10998/udp
 
 CMD ["/lib/systemd/systemd"]
 ```
