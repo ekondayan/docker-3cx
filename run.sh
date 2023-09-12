@@ -3,6 +3,7 @@
 VERSION=18.0.3.450
 USER=farfui
 HOSTNAME=pbx.yourdomain.com
+REPO=${USER}/3cx:${VERSION}
 
 docker run \
         -d \
@@ -18,4 +19,4 @@ docker run \
         -v 3cx_log:/var/log \
         --cap-add SYS_ADMIN \
         --cap-add NET_ADMIN \
-        ${USER}/3cx:${VERSION}
+        ${REPO}
