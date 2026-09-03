@@ -1,4 +1,4 @@
-FROM debian:buster
+FROM debian:bookworm
   
 ARG BUILD_STRING
 ARG BUILD_DATE
@@ -40,7 +40,7 @@ RUN apt-get update -y \
        libnghttp2-14 \
        librtmp1 \
        libssh2-1 \
-       libtinyxml2-6a \
+       libtinyxml2-9 \
        libzen0v5 \
        $(apt-cache depends 3cxpbx | grep Depends | sed "s/.*ends:\ //" | tr '\n' ' ') \
     && rm -f /lib/systemd/system/multi-user.target.wants/* \

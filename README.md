@@ -29,7 +29,7 @@ docker run \
         -v 3cx_log:/var/log \
         --cap-add SYS_ADMIN \
         --cap-add NET_ADMIN \
-        farfui/3cx:18.0.8.935
+        farfui/3cx:20.0.9.995
 
 3. Setup the timezone. You can find the full listing under "/usr/share/zoneinfo/".
 
@@ -45,7 +45,7 @@ build.sh - How this container was build
 ```bash
 #!/bin/bash
   
-VERSION=18.0.8.935
+VERSION=20.0.9.995
 USER=farfui
 
 docker rmi ${USER}/3cx:${VERSION}
